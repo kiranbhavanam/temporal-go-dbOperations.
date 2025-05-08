@@ -5,11 +5,16 @@ database:
   password: "password"
   dbname: "test"
   sslmode: "disable"
+  pool:
+    max_conns: 20
+    min_conns: 5
+    max_conn_lifetime: 30m
+    max_conn_idle_time: 10m
 
 temporal:
   host_port: "localhost:7233"
   namespace: "default"
 
-workflow_count: 5
-activity_count: 3
+workflow_count: 100
+activity_count: 20
 task_queue: "go-poc"
