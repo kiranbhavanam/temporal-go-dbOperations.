@@ -1,0 +1,15 @@
+database:
+  host: "localhost"
+  port: 5433
+  user: "postgres"
+  password: "password"
+  dbname: "test"
+  sslmode: "disable"
+
+temporal:
+  host_port: "localhost:7233"
+  namespace: "default"
+
+workflow_count: 5
+activity_count: 3
+task_queue: "go-poc"
