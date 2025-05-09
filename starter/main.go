@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"go-poc/config"
 	"go-poc/dbconn"
 
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 )
 
 
@@ -37,35 +39,63 @@ func main() {
 	}
 	defer c.Close()
 
-	// Start workflow for each workflow count
-	for i := 0; i < cfg.WorkflowCount; i++ {
-		workflowID := fmt.Sprintf("workflow-%d-%d", time.Now().UnixNano(), i)
-		workflowOptions := client.StartWorkflowOptions{
-			ID:        workflowID,
-			TaskQueue: cfg.TaskQueue,
+	// Start workflows in batches
+	workflowCount := cfg.Workflows.Count
+	batchSize := cfg.Workflows.BatchSize
+	for i := 0; i < workflowCount; i += batchSize {
+		end := i + batchSize
+		if end > workflowCount {
+			end = workflowCount
 		}
 
-		workflowParams := dbconn.WorkflowParams{
-			ActivityCount: cfg.ActivityCount,
-		}
-
-		we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, dbconn.Workflow, workflowParams)
-		if err != nil {
-			log.Printf("Failed to start workflow %d: %v", i, err)
-			continue
-		}
-
-		log.Printf("Started workflow %d: ID=%s, RunID=%s", i, we.GetID(), we.GetRunID())
-
-		// Process workflow result in a separate goroutine do not wait for workflow to complete each workflow is processed on separate go routine.
-		go func(we client.WorkflowRun) {
-			var result string
-			if err := we.Get(context.Background(), &result); err != nil {
-				log.Printf("Workflow %s failed: %v", we.GetID(), err)
-				return
+		// Create and start workflows in parallel
+		var wg sync.WaitGroup
+		for j := i; j < end; j++ {
+			workflowID := fmt.Sprintf("workflow-%d", j)
+			workflowOptions := client.StartWorkflowOptions{
+				ID:        workflowID,
+				TaskQueue: cfg.TaskQueue,
+				WorkflowExecutionTimeout: time.Duration(cfg.Workflows.ExecutionTimeout) * time.Second,
+				RetryPolicy: &temporal.RetryPolicy{
+					InitialInterval: time.Duration(cfg.Workflows.ThrottleDelayMs) * time.Millisecond,
+					MaximumAttempts: int32(cfg.Workflows.RetryCount),
+					BackoffCoefficient: 2.0,
+				},
 			}
-			log.Printf("Workflow %s completed: %s", we.GetID(), result)
-		}(we)
+
+			workflowData := dbconn.WorkflowData{
+				ID:         workflowID,
+				ActivityCount: cfg.Activities.Count,
+			}
+
+			wg.Add(1)
+			go func(id string, data dbconn.WorkflowData, options client.StartWorkflowOptions) {
+				defer wg.Done()
+				// Start workflow
+				we, err := c.ExecuteWorkflow(context.Background(), options, dbconn.Workflow, data)
+				if err != nil {
+					log.Printf("Failed to start workflow %s: %v", id, err)
+					return
+				}
+				log.Printf("Started workflow %s", id)
+
+				// Process workflow result in a separate goroutine do not wait for workflow to complete each workflow is processed on separate go routine.
+				go func(we client.WorkflowRun) {
+					var result string
+					if err := we.Get(context.Background(), &result); err != nil {
+						log.Printf("Workflow %s failed: %v", we.GetID(), err)
+						return
+					}
+					log.Printf("Workflow %s completed: %s", we.GetID(), result)
+				}(we)
+			}(workflowID, workflowData, workflowOptions)
+		}
+
+		// Wait for all workflows in this batch to start
+		wg.Wait()
+
+		// Add delay between batches
+		time.Sleep(time.Duration(cfg.Workflows.ThrottleDelayMs) * time.Millisecond)
 	}
 
 	// Keep the main goroutine alive

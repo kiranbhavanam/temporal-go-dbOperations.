@@ -2,23 +2,39 @@ package dbconn
 
 import (
 	"fmt"
+	"log"
 	"time"
 
+	"go-poc/config"
+
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
-// WorkflowParams contains parameters for the workflow,for type safety it is better to use struct rather than sending data directly.
-type WorkflowParams struct {
+// WorkflowData contains parameters for the workflow, for type safety it is better to use struct rather than sending data directly.
+type WorkflowData struct {
+	ID          string
 	ActivityCount int
 }
 
 // Workflow executes a configurable number of activities
-func Workflow(ctx workflow.Context, params WorkflowParams) (string, error) {
+func Workflow(ctx workflow.Context, data WorkflowData) (string, error) {
 	logger := workflow.GetLogger(ctx)
-	workflowInfo := workflow.GetInfo(ctx)
+	cfg, err := config.LoadConfig()
 
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+	// Configure activity options from config
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
+		StartToCloseTimeout: time.Duration(data.ActivityCount) * time.Second,
+		HeartbeatTimeout: time.Second,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval: time.Duration(cfg.Activities.InitialInterval) * time.Second,
+			MaximumInterval: time.Duration(cfg.Activities.MaximumInterval) * time.Millisecond,
+			MaximumAttempts: int32(cfg.Activities.RetryCount),
+			BackoffCoefficient: cfg.Activities.BackoffCoefficient,
+		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
@@ -26,9 +42,9 @@ func Workflow(ctx workflow.Context, params WorkflowParams) (string, error) {
 	var finalResult string
 
 	// Execute the configured number of activities
-	for i := 1; i <= params.ActivityCount; i++ {
+	for i := 1; i <= data.ActivityCount; i++ {
 		activityData := Data{
-			WorkflowID: workflowInfo.WorkflowExecution.ID,
+			WorkflowID: data.ID,
 			ActivityID: i,
 		}
 
@@ -43,5 +59,5 @@ func Workflow(ctx workflow.Context, params WorkflowParams) (string, error) {
 	}
 
 	return fmt.Sprintf("Workflow %s completed successfully with %d activities. Results:\n%s",
-		workflowInfo.WorkflowExecution.ID, params.ActivityCount, finalResult), nil
+		data.ID, data.ActivityCount, finalResult), nil
 }

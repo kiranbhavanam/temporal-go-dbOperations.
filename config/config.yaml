@@ -1,10 +1,10 @@
 database:
-  host: "temporaltest.cz6q8kq4i3qr.us-east-1.rds.amazonaws.com"
-  port: 5432
+  host: "3.223.16.235"
+  port: 4444
   user: "postgres"
   password: "password"
   dbname: "postgres"
-  sslmode: "require"
+  sslmode: "disable"
   pool:
     max_conns: 20
     min_conns: 5
@@ -15,6 +15,27 @@ temporal:
   host_port: "18.208.242.118:7233"
   namespace: "default"
 
-workflow_count: 1000
-activity_count: 20
+workflows:
+  count: 10
+  batchSize: 1000
+  parallelism: 32
+  throttleDelayMs: 100
+  RetryCount: 20
+  executionTimeout: 12000
+
+workers:
+  workflowWorkerCount: 30
+  activityWorkerCount: 200
+
+activities:
+  StartToCloseTimeout: 100000
+  ScheduledToCloseTimeout: 200000
+  StartToScheduleTimeout: 10000
+  RetryCount: 30
+  heartbeatIntervalSeconds: 10
+  initialInterval: 1
+  maximumInterval: 100000
+  backoffCoefficient: 2.0
+  count: 20
+
 task_queue: "go-poc"

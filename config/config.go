@@ -30,11 +30,38 @@ type TemporalConfig struct {
 	Namespace string `yaml:"namespace"`
 }
 
+type WorkflowConfig struct {
+	Count            int `yaml:"count"`
+	BatchSize        int `yaml:"batchSize"`
+	Parallelism      int `yaml:"parallelism"`
+	ThrottleDelayMs  int `yaml:"throttleDelayMs"`
+	RetryCount       int `yaml:"RetryCount"`
+	ExecutionTimeout int `yaml:"executionTimeout"`
+}
+
+type WorkerConfig struct {
+	WorkflowWorkerCount int `yaml:"workflowWorkerCount"`
+	ActivityWorkerCount int `yaml:"activityWorkerCount"`
+}
+
+type ActivityConfig struct {
+	StartToCloseTimeout    int     `yaml:"StartToCloseTimeout"`
+	ScheduledToCloseTimeout int     `yaml:"ScheduledToCloseTimeout"`
+	StartToScheduleTimeout int     `yaml:"StartToScheduleTimeout"`
+	RetryCount            int     `yaml:"RetryCount"`
+	HeartbeatIntervalSeconds int   `yaml:"heartbeatIntervalSeconds"`
+	InitialInterval       int     `yaml:"initialInterval"`
+	MaximumInterval       int     `yaml:"maximumInterval"`
+	BackoffCoefficient    float64 `yaml:"backoffCoefficient"`
+	Count                int     `yaml:"count"`
+}
+
 type AppConfig struct {
 	DB            DBConfig       `yaml:"database"`
 	Temporal      TemporalConfig `yaml:"temporal"`
-	WorkflowCount int            `yaml:"workflow_count"`
-	ActivityCount int            `yaml:"activity_count"`
+	Workflows     WorkflowConfig `yaml:"workflows"`
+	Workers       WorkerConfig   `yaml:"workers"`
+	Activities    ActivityConfig `yaml:"activities"`
 	TaskQueue     string         `yaml:"task_queue"`
 }
 
