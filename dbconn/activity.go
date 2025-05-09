@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	connPool *pgxpool.Pool
-	connOnce sync.Once
+	connPool *pgxpool.Pool //It's like a container that holds multiple db connections.
+	connOnce sync.Once //ensures no matter how many times InitDB is called, it will only initialize once.
 	initErr  error
 )
 
@@ -24,7 +24,6 @@ type Data struct {
 
 // InitDB initializes the database connection pool
 func InitDB(cfg *config.DBConfig) error {
-	var initErr error
 	connOnce.Do(func() {
 		config, err := pgxpool.ParseConfig(fmt.Sprintf(
 			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
@@ -57,10 +56,6 @@ func InitDB(cfg *config.DBConfig) error {
 	return initErr
 }
 
-// GetDB returns the connection pool
-func GetDB() *pgxpool.Pool {
-	return connPool
-}
 
 // CloseDB closes the connection pool
 func CloseDB() {

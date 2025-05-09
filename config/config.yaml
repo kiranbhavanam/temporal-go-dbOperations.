@@ -1,10 +1,10 @@
 database:
-  host: "localhost"
-  port: 5433
+  host: "temporaltest.cz6q8kq4i3qr.us-east-1.rds.amazonaws.com"
+  port: 5432
   user: "postgres"
   password: "password"
-  dbname: "test"
-  sslmode: "disable"
+  dbname: "postgres"
+  sslmode: "require"
   pool:
     max_conns: 20
     min_conns: 5
@@ -12,9 +12,9 @@ database:
     max_conn_idle_time: 10m
 
 temporal:
-  host_port: "localhost:7233"
+  host_port: "18.208.242.118:7233"
   namespace: "default"
 
-workflow_count: 100
+workflow_count: 1000
 activity_count: 20
 task_queue: "go-poc"

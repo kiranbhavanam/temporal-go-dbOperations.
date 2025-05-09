@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-// WorkflowParams contains parameters for the workflow
+// WorkflowParams contains parameters for the workflow,for type safety it is better to use struct rather than sending data directly.
 type WorkflowParams struct {
 	ActivityCount int
 }

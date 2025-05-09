@@ -57,7 +57,7 @@ func main() {
 
 		log.Printf("Started workflow %d: ID=%s, RunID=%s", i, we.GetID(), we.GetRunID())
 
-		// Process workflow result in a separate goroutine
+		// Process workflow result in a separate goroutine do not wait for workflow to complete each workflow is processed on separate go routine.
 		go func(we client.WorkflowRun) {
 			var result string
 			if err := we.Get(context.Background(), &result); err != nil {
