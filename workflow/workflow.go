@@ -1,4 +1,4 @@
-package dbconn
+package workflow
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"go-poc/config"
-
+	"go-poc/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -27,13 +27,13 @@ func Workflow(ctx workflow.Context, data WorkflowData) (string, error) {
 	}
 	// Configure activity options from config
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Duration(data.ActivityCount) * time.Second,
-		HeartbeatTimeout: time.Second,
+		StartToCloseTimeout: time.Duration(cfg.Activities.StartToCloseTimeout) * time.Second,
+		HeartbeatTimeout: time.Duration(cfg.Activities.HeartbeatIntervalSeconds) * time.Second,
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval: time.Duration(cfg.Activities.InitialInterval) * time.Second,
 			MaximumInterval: time.Duration(cfg.Activities.MaximumInterval) * time.Millisecond,
 			MaximumAttempts: int32(cfg.Activities.RetryCount),
-			BackoffCoefficient: cfg.Activities.BackoffCoefficient,
+			BackoffCoefficient: float64(cfg.Activities.BackoffCoefficient),
 		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
@@ -43,12 +43,12 @@ func Workflow(ctx workflow.Context, data WorkflowData) (string, error) {
 
 	// Execute the configured number of activities
 	for i := 1; i <= data.ActivityCount; i++ {
-		activityData := Data{
+		activityData := activity.Data{
 			WorkflowID: data.ID,
 			ActivityID: i,
 		}
 
-		err := workflow.ExecuteActivity(ctx, Activity, activityData).Get(ctx, &result)
+		err := workflow.ExecuteActivity(ctx, activity.Activity, activityData).Get(ctx, &result)
 		if err != nil {
 			logger.Error("Activity failed", "ActivityID", i, "error", err)
 			return "", fmt.Errorf("activity %d failed: %v", i, err)

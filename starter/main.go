@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"go-poc/config"
-	"go-poc/dbconn"
-
+	"go-poc/activity"
+	"go-poc/workflow"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
 )
@@ -24,15 +24,16 @@ func main() {
 	}
 
 	// Initialize database connection
-	if err := dbconn.InitDB(&cfg.DB); err != nil {
+	if err := activity.InitDB(&cfg.DB); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer dbconn.CloseDB()
+	defer activity.CloseDB()
 
-	// Create Temporal client
+	// Create Temporal client with API key
 	c, err := client.Dial(client.Options{
 		HostPort:  cfg.Temporal.HostPort,
 		Namespace: cfg.Temporal.Namespace,
+		
 	})
 	if err != nil {
 		log.Fatalf("Failed to create Temporal client: %v", err)
@@ -59,20 +60,19 @@ func main() {
 				RetryPolicy: &temporal.RetryPolicy{
 					InitialInterval: time.Duration(cfg.Workflows.ThrottleDelayMs) * time.Millisecond,
 					MaximumAttempts: int32(cfg.Workflows.RetryCount),
-					BackoffCoefficient: 2.0,
 				},
 			}
 
-			workflowData := dbconn.WorkflowData{
+			workflowData := workflow.WorkflowData{
 				ID:         workflowID,
 				ActivityCount: cfg.Activities.Count,
 			}
 
 			wg.Add(1)
-			go func(id string, data dbconn.WorkflowData, options client.StartWorkflowOptions) {
+			go func(id string, data workflow.WorkflowData, options client.StartWorkflowOptions) {
 				defer wg.Done()
 				// Start workflow
-				we, err := c.ExecuteWorkflow(context.Background(), options, dbconn.Workflow, data)
+				we, err := c.ExecuteWorkflow(context.Background(), options, workflow.Workflow, data)
 				if err != nil {
 					log.Printf("Failed to start workflow %s: %v", id, err)
 					return

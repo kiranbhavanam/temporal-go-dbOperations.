@@ -6,8 +6,9 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 
+	"go-poc/activity"
 	"go-poc/config"
-	"go-poc/dbconn"
+	"go-poc/workflow"
 )
 
 func main() {
@@ -18,10 +19,10 @@ func main() {
 	}
 
 	// Initialize database connection
-	if err := dbconn.InitDB(&cfg.DB); err != nil {
+	if err := activity.InitDB(&cfg.DB); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer dbconn.CloseDB()
+	defer activity.CloseDB()
 
 	// Create Temporal client
 	c, err := client.Dial(client.Options{
@@ -37,8 +38,8 @@ func main() {
 	w := worker.New(c, cfg.TaskQueue, worker.Options{})
 
 	// Register workflows and activities
-	w.RegisterWorkflow(dbconn.Workflow)
-	w.RegisterActivity(dbconn.Activity)
+	w.RegisterWorkflow(workflow.Workflow)
+	w.RegisterActivity(activity.Activity)
 
 	// Start worker
 	log.Printf("Starting worker on task queue: %s", cfg.TaskQueue)

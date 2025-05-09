@@ -28,6 +28,7 @@ type DBConfig struct {
 type TemporalConfig struct {
 	HostPort string `yaml:"host_port"`
 	Namespace string `yaml:"namespace"`
+	APIKey string `yaml:"api_key"`
 }
 
 type WorkflowConfig struct {
