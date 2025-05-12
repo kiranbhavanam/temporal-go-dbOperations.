@@ -7,16 +7,16 @@ import (
 	"sync"
 	"time"
 
-	"go-poc/config"
 	"go-poc/activity"
+	"go-poc/config"
 	"go-poc/workflow"
+
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
 )
 
-
 func main() {
-	// Load configuration 
+	// Load configuration
 	cfg, err := config.LoadConfig()
 
 	if err != nil {
@@ -33,7 +33,6 @@ func main() {
 	c, err := client.Dial(client.Options{
 		HostPort:  cfg.Temporal.HostPort,
 		Namespace: cfg.Temporal.Namespace,
-		
 	})
 	if err != nil {
 		log.Fatalf("Failed to create Temporal client: %v", err)
@@ -54,8 +53,8 @@ func main() {
 		for j := i; j < end; j++ {
 			workflowID := fmt.Sprintf("workflow-%d", j)
 			workflowOptions := client.StartWorkflowOptions{
-				ID:        workflowID,
-				TaskQueue: cfg.TaskQueue,
+				ID:                       workflowID,
+				TaskQueue:                cfg.TaskQueue,
 				WorkflowExecutionTimeout: time.Duration(cfg.Workflows.ExecutionTimeout) * time.Second,
 				RetryPolicy: &temporal.RetryPolicy{
 					InitialInterval: time.Duration(cfg.Workflows.ThrottleDelayMs) * time.Millisecond,
@@ -64,7 +63,7 @@ func main() {
 			}
 
 			workflowData := workflow.WorkflowData{
-				ID:         workflowID,
+				ID:            workflowID,
 				ActivityCount: cfg.Activities.Count,
 			}
 

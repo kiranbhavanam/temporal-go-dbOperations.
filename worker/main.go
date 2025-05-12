@@ -34,8 +34,11 @@ func main() {
 	}
 	defer c.Close()
 
-	// Create worker
-	w := worker.New(c, cfg.TaskQueue, worker.Options{})
+	// Create worker with configured worker counts
+	w := worker.New(c, cfg.TaskQueue, worker.Options{
+		MaxConcurrentActivityExecutionSize:     cfg.Workers.ActivityWorkerCount,
+		MaxConcurrentWorkflowTaskExecutionSize: cfg.Workers.WorkflowWorkerCount,
+	})
 
 	// Register workflows and activities
 	w.RegisterWorkflow(workflow.Workflow)

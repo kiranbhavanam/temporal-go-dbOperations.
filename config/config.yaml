@@ -16,7 +16,7 @@ temporal:
   namespace: "default"
 
 workflows:
-  count: 10
+  count: 1000
   batchSize: 1000
   parallelism: 32
   throttleDelayMs: 100
@@ -24,7 +24,7 @@ workflows:
   executionTimeout: 12000
 
 workers:
-  workflowWorkerCount: 30
+  workflowWorkerCount: 200
   activityWorkerCount: 200
 
 activities:
