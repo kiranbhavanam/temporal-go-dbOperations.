@@ -15,7 +15,7 @@ cd "$base_dir" || exit 1
 mkdir -p "$logs_dir"
 
 # Stop any running workers
-pkill -f "./starter/main" || true
+pkill -f "./worker/main" || true
 sleep 2
 
 # Remove old logs
