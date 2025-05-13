@@ -1,12 +1,24 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+This is a sample application that demonstrates how to use the Temporal Go SDK to perform database operations.The main agenda of this POC is to identify the ideal performance we can achieve with the Temporal Go SDK
+by tweaking the parameters in the config file.
+About the folders:
+1. config: contains the config.yaml file.
+2. activity: contains the activity code.
+3. workflow: contains the workflow code.
+4. starter: contains the workflow initialization code.
+5. worker: contains the worker code.
+6. start_workers.sh: script to start the workers.
 
 # Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+ 1.Clone this repository
+ 2.Update the config.yaml file with your database and temporal configuration.
+ 3. Run the application by executing the following commands:
+    a. navigate to the root directory of the project.
+    b. go build -o worker/main.go // will generate a worker executable.
+    c. go run starter/main.go //workflow initialization code, this will start the specified number of workflows.
+    d. ./start_workers.sh worker_count //worker code, this will start the specified number of workers.
+
+  
 
 # Build and Test
 TODO: Describe and show how to build your code and run the tests. 
@@ -18,17 +30,7 @@ If you want to learn more about creating good readme files then refer the follow
 - [ASP.NET Core](https://github.com/aspnet/Home)
 - [Visual Studio Code](https://github.com/Microsoft/vscode)
 - [Chakra Core](https://github.com/Microsoft/ChakraCore)
-# temporal-go-dbOperations.
 
-This is a sample application that demonstrates how to use the Temporal Go SDK to perform database operations.
 
-# How to execute
-
-1. Update the config.yaml file with your database and temporal configuration.
-
-2. Run the application by executing the following commands:
-    a. navigate to the root directory of the project.
-    b. go run starter/main.go //workflow initialization code, this will start the specified number of workflows.
-    c. ./start_workers.sh worker_count //worker code, this will start the specified number of workers.
 
     
